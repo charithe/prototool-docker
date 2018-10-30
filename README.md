@@ -1,6 +1,9 @@
 Prototool Docker Helper
 =======================
 
+[![Docker Automated build](https://img.shields.io/docker/automated/jrottenberg/ffmpeg.svg?style=flat-square)](https://hub.docker.com/r/charithe/prototool-docker/)
+
+
 Docker image with [prototool](https://github.com/uber/prototool), [gogoproto](https://github.com/gogo/protobuf) and 
 `protoc-gen-grpc-java` pre-installed.
 
