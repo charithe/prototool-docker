@@ -4,13 +4,15 @@ Prototool Docker Helper
 Docker image with [prototool](https://github.com/uber/prototool), [gogoproto](https://github.com/gogo/protobuf) and 
 `protoc-gen-grpc-java` pre-installed.
 
-The accompanying `prototool.sh` script mounts the current working directory as `/input` and runs the Docker image
-as the current user.
+The accompanying `prototool.sh` script mounts the current working directory as `/in` and runs the Docker image
+as the current user. This results in the generated artifacts having the correct permissions.
 
 Installation
 ------------
 
-Clone the repo and run `make` to build the Docker image
+Clone the repo and run `make` to build the Docker image. 
+
+Optionally, add `prototool.sh` to your `PATH`.
 
 Usage
 -----
@@ -34,26 +36,26 @@ generate:
   plugins:
     - name: gogoslick
       type: gogo
+      path: /bin/protoc-gen-gogoslick
       flags: plugins=grpc
       output: ./go/pkg/v1pb
     - name: java
       output: ./java/src/main/java
     - name: grpc-java
-      path: /prototool/protoc-gen-grpc-java
+      path: /bin/protoc-gen-grpc-java
       output: ./java/src/main/java
-
 ```
 
 Prototool can now be invoked as follows:
 
 ```shell
 # Lint
-/path/to/prototool.sh lint /input
+/path/to/prototool.sh lint 
 
 # Compile
-/path/to/prototool.sh compile /input
+/path/to/prototool.sh compile 
 
 # All
-/path/to/prototool.sh all /input
+/path/to/prototool.sh all 
 ```
 

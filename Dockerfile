@@ -1,11 +1,42 @@
-FROM golang:1.11
-ARG PROTOTOOL_URL=https://github.com/uber/prototool/releases/download/v1.3.0/prototool-Linux-x86_64
-ARG GRPC_JAVA_URL=https://search.maven.org/remotecontent?filepath=io/grpc/protoc-gen-grpc-java/1.16.1/protoc-gen-grpc-java-1.16.1-linux-x86_64.exe
-RUN apt-get update && apt-get install -y wget git
-RUN mkdir /prototool /.cache && chmod 777 /.cache
-WORKDIR /prototool
-RUN wget -O prototool $PROTOTOOL_URL && chmod +x prototool
-RUN wget -O protoc-gen-grpc-java $GRPC_JAVA_URL && chmod +x protoc-gen-grpc-java
-RUN go get -u github.com/gogo/protobuf/proto github.com/gogo/protobuf/protoc-gen-gogoslick github.com/gogo/protobuf/gogoproto
-ENTRYPOINT ["/prototool/prototool"]
+FROM golang:1.11-alpine AS build
+ARG PROTOTOOL_VERSION=1.3.0
+ARG PROTOC_VERSION=3.6.1
+ARG PROTOC_GEN_GO_VERSION=1.2.0
+ARG PROTOC_GEN_GOGO_VERSION=1.1.1
+ARG PROTOC_GEN_JAVA_GRPC_VERSION=1.16.1
+
+RUN apk --no-cache add --update curl git libc6-compat
+RUN \
+  curl -sSL https://github.com/uber/prototool/releases/download/v$PROTOTOOL_VERSION/prototool-Linux-x86_64 -o /bin/prototool && \
+  chmod +x /bin/prototool
+RUN \
+  mkdir /tmp/prototool-bootstrap && \
+  echo $'protoc:\n  version:' $PROTOC_VERSION > /tmp/prototool-bootstrap/prototool.yaml && \
+  echo 'syntax = "proto3";' > /tmp/prototool-bootstrap/tmp.proto && \
+  prototool compile /tmp/prototool-bootstrap && \
+  rm -rf /tmp/prototool-bootstrap
+RUN go get github.com/golang/protobuf/... && \
+  cd /go/src/github.com/golang/protobuf && \
+  git checkout v$PROTOC_GEN_GO_VERSION && \
+  go install ./protoc-gen-go
+RUN go get github.com/gogo/protobuf/... && \
+  cd /go/src/github.com/gogo/protobuf && \
+  git checkout v$PROTOC_GEN_GOGO_VERSION && \
+  go install ./protoc-gen-gogofast ./protoc-gen-gogofaster ./protoc-gen-gogoslick
+RUN curl -sSL https://search.maven.org/remotecontent?filepath=io/grpc/protoc-gen-grpc-java/$PROTOC_GEN_JAVA_GRPC_VERSION/protoc-gen-grpc-java-$PROTOC_GEN_JAVA_GRPC_VERSION-linux-x86_64.exe -o /bin/protoc-gen-grpc-java && \
+    chmod +x /bin/protoc-gen-grpc-java
+
+FROM alpine:3.8
+WORKDIR /in
+RUN apk --no-cache add --update libc6-compat 
+COPY --from=build /bin/prototool /bin/prototool
+COPY --from=build /root/.cache/prototool /.cache/prototool
+COPY --from=build /go/bin/protoc-gen-go /bin/protoc-gen-go
+COPY --from=build /go/bin/protoc-gen-gogofast /bin/protoc-gen-gogofast
+COPY --from=build /go/bin/protoc-gen-gogofaster /bin/protoc-gen-gogofaster
+COPY --from=build /go/bin/protoc-gen-gogoslick /bin/protoc-gen-gogoslick
+COPY --from=build /bin/protoc-gen-grpc-java /bin/protoc-gen-grpc-java
+RUN chmod -R 755 /.cache
+ENTRYPOINT ["/bin/prototool"]
+
 
