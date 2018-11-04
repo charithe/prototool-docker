@@ -1,0 +1,31 @@
+protoc:
+  version: 3.6.1
+  includes:
+    - /include
+
+lint:
+  rules:
+    remove:
+      - FILE_OPTIONS_EQUAL_JAVA_PACKAGE_COM_PREFIX
+
+generate:
+  go_options:
+    import_path: github.com/charithe/telemetry
+
+  plugins:
+    - name: gogofast
+      type: gogo
+      path: /bin/protoc-gen-gogofast
+      flags: plugins=grpc
+      output: ./go/pkg/gen
+    - name: validate
+      path: /bin/protoc-gen-validate
+      flags: lang=go
+      output: ./go/pkg/gen
+    - name: java
+      output: ./java/src/main/java
+    - name: grpc-java
+      path: /bin/protoc-gen-grpc-java
+      output: ./java/src/main/java
+
+

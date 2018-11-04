@@ -1,0 +1,60 @@
+syntax = "proto3";
+
+package charithe.telemetry.v1;
+
+option go_package = "v1pb";
+option java_multiple_files = true;
+option java_outer_classname = "TelemetryProto";
+option java_package = "io.github.charithe.telemetry.v1";
+
+import "google/protobuf/timestamp.proto";
+import "validate/validate.proto";
+
+service Telemetry {
+  // Record receives and persists telemetry data from remote devices 
+  rpc Record(RecordRequest) returns (RecordResponse);
+}
+
+message RecordRequest {
+  TelemetryData data = 1;
+}
+
+message RecordResponse {}
+
+message TelemetryData {
+  // device_id must start with 'device' and be between 12 and 24 characters in length
+  string device_id = 1 [
+    (validate.rules).string = {
+      prefix: "device-"
+      min_len: 12
+      max_len: 24
+    }
+  ];
+  // ip_address must be a valida IP adddress
+  string ip_address = 2 [(validate.rules).string.ip = true];
+  // software_version must be between 100 and 200
+  uint32 software_version = 3 [
+    (validate.rules).uint32 = {
+      gte: 100
+      lt: 200
+    }
+  ];
+  // temperature must be between -60 and 190.5
+  float temperature = 4 [
+    (validate.rules).float = {
+      gte: -60.0
+      lte: 190.5
+    }
+  ];
+  // log_entries must contain at least one entry
+  repeated LogEntry log_entries = 5 [(validate.rules).repeated.min_items = 1];
+}
+
+message LogEntry {
+  // timestamp must be after 2018-01-01
+  google.protobuf.Timestamp timestamp = 1 [(validate.rules).timestamp.gte.seconds = 1514764800];
+  // component must be at least 5 characters long 
+  string component = 2 [(validate.rules).string.min_len = 5];
+  // state must be at least 10 bytes long
+  bytes state = 3 [(validate.rules).bytes.min_len = 10];
+}
