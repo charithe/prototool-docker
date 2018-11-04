@@ -15,7 +15,7 @@ Installation
 ------------
 
 ```shell
-curl -o prototool.sh https://raw.githubusercontent.com/charithe/prototool-docker/v0.0.3/prototool.sh
+curl -o prototool.sh https://raw.githubusercontent.com/charithe/prototool-docker/v0.0.2/prototool.sh
 ```
 
 Optionally, add `prototool.sh` to your `PATH`.
