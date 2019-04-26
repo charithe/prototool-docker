@@ -1,4 +1,9 @@
 #!/usr/bin/env bash
 
 USER="$(id -u):$(id -g)"
-docker run --rm --user $USER -i -t -v $(pwd):/in charithe/prototool-docker $@
+docker run -it \
+    --rm \
+    --user $USER \
+    --mount type=bind,source="$(pwd)",target=/work \
+    --tmpfs /tmp:exec \
+    charithe/prototool-docker prototool $@

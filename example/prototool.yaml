@@ -1,7 +1,7 @@
 protoc:
-  version: 3.6.1
+  version: 3.7.1
   includes:
-    - /include
+    - /usr/include
 
 lint:
   rules:
@@ -15,17 +15,14 @@ generate:
   plugins:
     - name: gogofast
       type: gogo
-      path: /bin/protoc-gen-gogofast
       flags: plugins=grpc
       output: ./go/pkg/gen
     - name: validate
-      path: /bin/protoc-gen-validate
       flags: lang=go
       output: ./go/pkg/gen
     - name: java
       output: ./java/src/main/java
     - name: grpc-java
-      path: /bin/protoc-gen-grpc-java
       output: ./java/src/main/java
 
 
